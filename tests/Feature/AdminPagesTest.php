@@ -32,6 +32,19 @@ class AdminPagesTest extends TestCase
         $this->get('/admin')->assertOk();
     }
 
+    public function test_daily_spending_list_widget_mounts(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'expense', 'amount' => 75000, 'category' => 'makan', 'occurred_on' => now()]);
+
+        \Livewire\Livewire::test(\App\Filament\Widgets\DailySpendingList::class)
+            ->assertSuccessful()
+            ->assertSeeText(number_format(75000, 0))
+            ->assertSeeText(now()->format('D, d M Y'));
+    }
+
     public function test_transaction_form_renders(): void
     {
         $this->actingAs(User::factory()->create());

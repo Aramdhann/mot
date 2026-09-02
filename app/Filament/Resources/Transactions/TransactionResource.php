@@ -20,6 +20,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 
 class TransactionResource extends Resource
@@ -105,6 +106,11 @@ class TransactionResource extends Resource
                     ->placeholder('—'),
             ])
             ->defaultSort('occurred_on', 'desc')
+            ->groups([
+                Group::make('occurred_on')->label('Day')->date(),
+                Group::make('category')->label('Category'),
+                Group::make('wallet.name')->label('Wallet'),
+            ])
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),

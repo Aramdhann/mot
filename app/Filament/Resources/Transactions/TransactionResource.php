@@ -33,6 +33,9 @@ class TransactionResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        // $get('type') is a string pre-fill, an enum instance after hydration — normalize once
+        $type = fn (Get $get): ?string => ($t = $get('type')) instanceof TransactionType ? $t->value : $t;
+
         return $schema
             ->components([
                 Select::make('type')
@@ -51,23 +54,23 @@ class TransactionResource extends Resource
                     ->minValue(0.01)
                     ->prefix('IDR'),
                 TextInput::make('category')
-                    ->required(fn (Get $get): bool => $get('type') === TransactionType::Expense->value)
-                    ->visible(fn (Get $get): bool => in_array($get('type'), [TransactionType::Income->value, TransactionType::Expense->value]))
+                    ->required(fn (Get $get): bool => $type($get) === TransactionType::Expense->value)
+                    ->visible(fn (Get $get): bool => in_array($type($get), [TransactionType::Income->value, TransactionType::Expense->value]))
                     ->maxLength(50),
                 Select::make('transfer_to_wallet_id')
                     ->label('To wallet')
                     ->options(fn (): array => Wallet::orderBy('name')->pluck('name', 'id')->all())
                     ->searchable()
-                    ->visible(fn (Get $get): bool => $get('type') === TransactionType::Transfer->value)
-                    ->required(fn (Get $get): bool => $get('type') === TransactionType::Transfer->value)
+                    ->visible(fn (Get $get): bool => $type($get) === TransactionType::Transfer->value)
+                    ->required(fn (Get $get): bool => $type($get) === TransactionType::Transfer->value)
                     ->different('wallet_id')
                     ->helperText('Source wallet is the "Wallet" field above.'),
                 Select::make('loan_id')
                     ->label('Loan')
                     ->options(fn (): array => Loan::orderBy('name')->pluck('name', 'id')->all())
                     ->searchable()
-                    ->visible(fn (Get $get): bool => $get('type') === TransactionType::LoanPayment->value)
-                    ->required(fn (Get $get): bool => $get('type') === TransactionType::LoanPayment->value),
+                    ->visible(fn (Get $get): bool => $type($get) === TransactionType::LoanPayment->value)
+                    ->required(fn (Get $get): bool => $type($get) === TransactionType::LoanPayment->value),
                 TextInput::make('description')
                     ->maxLength(255),
                 DatePicker::make('occurred_on')

@@ -16,17 +16,12 @@ class Wallet extends Model
 
     /**
      * Balance per wallet, derived from transactions — never stored, never drifts.
-     * ponytail: 3 aggregate queries + per-request memo; fine for personal use, materialized balance column if it ever lags.
+     * ponytail: no memoization — a static cache leaked across tests/processes; 3 cheap queries
      *
      * @return array<int, float>  wallet_id => balance
      */
     public static function balancesById(): array
     {
-        static $cache = null;
-        if ($cache !== null) {
-            return $cache;
-        }
-
         $totals = [];
 
         $rows = Transaction::query()
@@ -59,7 +54,7 @@ class Wallet extends Model
             $totals[$walletId] = ($totals[$walletId] ?? 0) + (float) $total;
         }
 
-        return $cache = $totals;
+        return $totals;
     }
 
     public function getBalanceAttribute(): float

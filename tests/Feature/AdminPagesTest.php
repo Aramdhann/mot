@@ -19,6 +19,19 @@ class AdminPagesTest extends TestCase
         }
     }
 
+    public function test_dashboard_renders_with_data(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        $loan = \App\Models\Loan::create(['name' => 'Motor', 'principal' => 14000000, 'started_on' => now()]);
+        \App\Models\Budget::create(['category' => 'makan', 'amount' => 2000000]);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'expense', 'amount' => 75000, 'category' => 'makan', 'occurred_on' => now()]);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'loan_payment', 'amount' => 1000000, 'loan_id' => $loan->id, 'occurred_on' => now()]);
+
+        $this->get('/admin')->assertOk();
+    }
+
     public function test_transaction_form_renders(): void
     {
         $this->actingAs(User::factory()->create());

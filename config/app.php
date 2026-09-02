@@ -80,6 +80,15 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Self-service account registration
+    |--------------------------------------------------------------------------
+    | Set ALLOW_REGISTRATION=false in production after you've made your account —
+    | every registered account gets full panel access (single-user app).
+    */
+    'allow_registration' => env('ALLOW_REGISTRATION', true),
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

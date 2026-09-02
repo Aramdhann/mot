@@ -9,6 +9,7 @@ Personal money tracker dashboard built with **Laravel 12** + **Filament v4** (pa
 - **Budgets** — monthly limit per category, spent/remaining tracking with color states
 - **Loans** — principal, auto-computed paid & remaining
 - **Dashboard** — total balance / income / spending / debt stats, latest transactions, wallet & budget & loan widgets, spending-by-day chart (6-month history) + daily list
+- **Create account** — self-service registration at `/admin/register` (name/email/password), gated by `ALLOW_REGISTRATION`
 - Transfer to same wallet is blocked; every money flow is one `transactions` row
 
 ## Stack
@@ -58,8 +59,8 @@ DB_PASSWORD=mot
 
 ## Testing
 
-28 tests / 95 assertions — CRUD through the real Filament UI, balance & loan & budget math,
-page rendering, form validation, 404 page. Tests run against `mot_testing` and roll back.
+31 tests / 104 assertions — CRUD through the real Filament UI, balance & loan & budget math,
+page rendering, form validation, registration (incl. disabled gate), 404 page. Tests run against `mot_testing` and roll back.
 
 ```bash
 php artisan test
@@ -104,6 +105,7 @@ the daily-spending queries use Postgres `extract()`; switching DBs means changin
 ### Production checklist
 
 - [ ] `.env`: `APP_ENV=production`, `APP_DEBUG=false` (debug pages leak paths/creds)
+- [ ] `ALLOW_REGISTRATION=false` after creating your account — every registered account gets full panel access (single-user app)
 - [ ] `php artisan config:cache` after any `.env` change
 - [ ] `php artisan test` green locally
 - [ ] Admin password is strong (single-user app — every account has panel access)
@@ -114,9 +116,10 @@ the daily-spending queries use Postgres `extract()`; switching DBs means changin
 ```
 app/Filament/Resources/     # CRUD screens: Wallets, Transactions, Budgets, Loans
 app/Filament/Widgets/       # dashboard: stats, latest tx, wallet/budget/loan tables, daily chart+list
+app/Filament/Auth/Register.php              # registration page (gated by ALLOW_REGISTRATION)
 app/Models/                 # Transaction has the type-normalization hook; Wallet computes balances
 app/Enums/TransactionType.php
-app/Providers/Filament/AdminPanelProvider.php   # brand, colors, top navbar
+app/Providers/Filament/AdminPanelProvider.php   # brand, colors, top navbar, registration gate
 database/migrations/
 tests/Feature/              # one test file per feature
 ```

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Register;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -28,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->registration(config('app.allow_registration') ? Register::class : null)
             ->brandName('MOT')
             ->topNavigation(true)
             // ponytail: Filament has no native top-right header actions on mobile (only Adaptive/Bottom); force row layout in widget tables

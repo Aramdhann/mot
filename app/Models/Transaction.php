@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
+    use BelongsToUser;
+
     protected $fillable = [
         'wallet_id', 'type', 'amount', 'category', 'description',
         'occurred_on', 'transfer_to_wallet_id', 'loan_id',

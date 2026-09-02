@@ -12,6 +12,12 @@ class LoanTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     public function test_remaining_equals_principal_without_payments(): void
     {
         $loan = Loan::create(['name' => 'Motor', 'principal' => 14000000, 'started_on' => now()]);

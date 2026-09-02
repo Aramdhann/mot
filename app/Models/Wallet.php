@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class Wallet extends Model
 {
+    use BelongsToUser;
+
     protected $fillable = ['name', 'type'];
 
     public function transactions()

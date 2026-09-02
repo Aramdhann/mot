@@ -13,6 +13,12 @@ class WalletTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     public function test_balance_sums_income_and_expense(): void
     {
         $wallet = Wallet::create(['name' => 'BCA', 'type' => 'bank']);

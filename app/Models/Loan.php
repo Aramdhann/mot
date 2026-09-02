@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
+    use BelongsToUser;
+
     protected $fillable = ['name', 'principal', 'started_on', 'note'];
 
     protected function casts(): array

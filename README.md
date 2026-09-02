@@ -10,6 +10,7 @@ Personal money tracker dashboard built with **Laravel 12** + **Filament v4** (pa
 - **Loans** — principal, auto-computed paid & remaining
 - **Dashboard** — total balance / income / spending / debt stats, latest transactions, wallet & budget & loan widgets, spending-by-day chart (6-month history) + daily list
 - **Create account** — self-service registration at `/admin/register` (name/email/password), gated by `ALLOW_REGISTRATION`
+- **Per-account data** — every wallet, transaction, budget and loan is scoped to its owner; accounts never see each other's data
 - Transfer to same wallet is blocked; every money flow is one `transactions` row
 
 ## Stack
@@ -59,8 +60,9 @@ DB_PASSWORD=mot
 
 ## Testing
 
-31 tests / 104 assertions — CRUD through the real Filament UI, balance & loan & budget math,
-page rendering, form validation, registration (incl. disabled gate), 404 page. Tests run against `mot_testing` and roll back.
+33 tests / 113 assertions — CRUD through the real Filament UI, balance & loan & budget math,
+page rendering, form validation, registration (incl. disabled gate), per-user data isolation, 404 page.
+Tests run against `mot_testing` and roll back.
 
 ```bash
 php artisan test
@@ -117,6 +119,7 @@ the daily-spending queries use Postgres `extract()`; switching DBs means changin
 app/Filament/Resources/     # CRUD screens: Wallets, Transactions, Budgets, Loans
 app/Filament/Widgets/       # dashboard: stats, latest tx, wallet/budget/loan tables, daily chart+list
 app/Filament/Auth/Register.php              # registration page (gated by ALLOW_REGISTRATION)
+app/Models/Concerns/BelongsToUser.php    # per-user global scope + auto user_id (used by all 4 models)
 app/Models/                 # Transaction has the type-normalization hook; Wallet computes balances
 app/Enums/TransactionType.php
 app/Providers/Filament/AdminPanelProvider.php   # brand, colors, top navbar, registration gate

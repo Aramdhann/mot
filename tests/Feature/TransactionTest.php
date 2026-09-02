@@ -13,6 +13,12 @@ class TransactionTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     public function test_transfer_normalizes_category_and_loan(): void
     {
         $a = Wallet::create(['name' => 'A', 'type' => 'cash']);

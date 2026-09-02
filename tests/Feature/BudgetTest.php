@@ -12,6 +12,12 @@ class BudgetTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     private function spend(float $amount, string $category, $date = null): void
     {
         $wallet = Wallet::first() ?? Wallet::create(['name' => 'BCA', 'type' => 'bank']);

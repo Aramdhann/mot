@@ -45,6 +45,29 @@ class AdminPagesTest extends TestCase
             ->assertSeeText(now()->format('D, d M Y'));
     }
 
+    public function test_quick_create_menu_is_on_every_panel_page(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        foreach (['/admin', '/admin/wallets', '/admin/transactions'] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee('Quick create')
+                ->assertSee('+ Transaction')
+                ->assertSee('+ Wallet')
+                ->assertSee('+ Budget')
+                ->assertSee('+ Loan');
+        }
+    }
+
+    public function test_action_query_param_mounts_create_form(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        // the URL the quick-create menu links to — opens the create modal on load
+        $this->get('/admin/wallets?action=create')->assertOk();
+    }
+
     public function test_transaction_form_renders(): void
     {
         $this->actingAs(User::factory()->create());

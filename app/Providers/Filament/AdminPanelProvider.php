@@ -33,6 +33,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('MOT')
             ->topNavigation(true)
             // ponytail: Filament has no native top-right header actions on mobile (only Adaptive/Bottom); force row layout in widget tables
+            // ponytail: Filament has no native FAB — quick-create menu via render hook; ?action=create is native action mounting
+            ->renderHook('panels::body.end', fn (): string => view('filament.quick-create')->render())
             ->renderHook('panels::body.start', fn (): string => '<style>@media (max-width: 639px) { .fi-wi-table .fi-ta-header-adaptive-actions-position { flex-direction: row; align-items: center; flex-wrap: wrap; } .fi-wi-table .fi-ta-header-adaptive-actions-position .fi-ta-actions { margin-inline-start: auto; } }</style>')
             ->colors([
                 'primary' => Color::Amber,

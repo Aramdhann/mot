@@ -69,6 +69,10 @@ class LoanResource extends Resource
                 TextColumn::make('started_on')
                     ->date()
                     ->sortable(),
+                TextColumn::make('note')
+                    ->limit(40)
+                    ->placeholder('—')
+                    ->tooltip(fn (Loan $record): ?string => $record->note),
             ])
             ->recordActions([
                 EditAction::make(),

@@ -110,9 +110,11 @@ class CrudTest extends TestCase
                 'name' => 'Motor',
                 'principal' => 14000000,
                 'started_on' => now()->format('Y-m-d'),
+                'note' => 'Cicilan 3 tahun, bunga 8%',
             ])
             ->assertHasNoActionErrors();
 
         $this->assertDatabaseHas('loans', ['name' => 'Motor']);
+        $this->get('/admin/loans')->assertOk()->assertSee('Cicilan 3 tahun');
     }
 }

@@ -42,6 +42,11 @@ class LoanProgress extends TableWidget
                     ->alignEnd()
                     ->color(fn (Loan $record): string => $record->remaining <= 0 ? 'success' : 'danger')
                     ->state(fn (Loan $record): float => $record->remaining),
+                TextColumn::make('note')
+                    ->label('Note')
+                    ->limit(25)
+                    ->placeholder('—')
+                    ->tooltip(fn (Loan $record): ?string => $record->note),
             ]);
     }
 }

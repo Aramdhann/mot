@@ -36,10 +36,12 @@ class BudgetResource extends Resource
                     ->helperText('Transactions with this category count against the budget.'),
                 TextInput::make('amount')
                     ->label('Monthly limit')
-                    ->numeric()
-                    ->minValue(0.01)
+                    ->rule(new \App\Rules\MoneyExpression)
+                    
                     ->nullable()
                     ->prefix('IDR')
+                    ->suffixAction(\App\Support\Money::calculatorAction())
+                    ->dehydrateStateUsing(fn ($state) => \App\Support\Money::evaluate($state))
                     ->helperText('Empty = no limit (category tracking only).'),
             ]);
     }

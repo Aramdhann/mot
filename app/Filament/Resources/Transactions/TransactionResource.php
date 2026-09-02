@@ -51,9 +51,11 @@ class TransactionResource extends Resource
                     ->required(),
                 TextInput::make('amount')
                     ->required()
-                    ->numeric()
-                    ->minValue(0.01)
-                    ->prefix('IDR'),
+                    ->rule(new \App\Rules\MoneyExpression)
+                    
+                    ->prefix('IDR')
+                    ->suffixAction(\App\Support\Money::calculatorAction())
+                    ->dehydrateStateUsing(fn ($state) => \App\Support\Money::evaluate($state)),
                 Select::make('category')
                     ->options(fn (): array => static::categoryOptions())
                     ->searchable()

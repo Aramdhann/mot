@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\Budgets\BudgetResource;
 use App\Models\Budget;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
@@ -27,7 +28,7 @@ class BudgetProgress extends TableWidget
                     ->color('gray')
                     ->url(route('filament.admin.resources.budgets.index')),
             ])
-            ->description(fn (): string => now()->translatedFormat('F Y'))
+            ->description(fn (): string => BudgetResource::budgetSummary())
             ->columns([
                 TextColumn::make('category')
                     ->weight('font-medium'),

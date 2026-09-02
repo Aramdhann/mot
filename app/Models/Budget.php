@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
 use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,6 +16,22 @@ class Budget extends Model
     {
         return [
             'amount' => 'decimal:2',
+        ];
+    }
+
+    /**
+     * Total budgeted limits vs this month's income — budgets with no limit are excluded
+     * (they don't cap spending, so they can't overshoot income).
+     *
+     * @return array{budgeted: float, income: float}
+     */
+    public static function totalsVsIncome(): array
+    {
+        return [
+            'budgeted' => (float) static::whereNotNull('amount')->sum('amount'),
+            'income' => (float) Transaction::where('type', TransactionType::Income)
+                ->whereBetween('occurred_on', [now()->startOfMonth(), now()->endOfMonth()])
+                ->sum('amount'),
         ];
     }
 

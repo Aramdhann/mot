@@ -122,6 +122,47 @@ class AdminPagesTest extends TestCase
         $this->get('/admin/budgets')->assertOk()->assertSee('No limit');
     }
 
+    public function test_budget_summary_flags_over_budget(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'income', 'amount' => 2500000, 'category' => 'gaji', 'occurred_on' => now()]);
+        \App\Models\Budget::create(['category' => 'makan', 'amount' => 2000000]);
+        \App\Models\Budget::create(['category' => 'tersier', 'amount' => 1000000]);
+        // no-limit budget must not count toward the total
+        \App\Models\Budget::create(['category' => 'jajan', 'amount' => null]);
+
+        $summary = \App\Filament\Resources\Budgets\BudgetResource::budgetSummary();
+
+        $this->assertStringContainsString('OVER', $summary);         // 3,000,000 budgeted vs 2,500,000 income
+        $this->assertStringContainsString('500,000', $summary);
+
+        $this->get('/admin/budgets')->assertOk()->assertSee('OVER');
+    }
+
+    public function test_budget_summary_under_budget(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'income', 'amount' => 2000000, 'category' => 'gaji', 'occurred_on' => now()]);
+        \App\Models\Budget::create(['category' => 'makan', 'amount' => 1500000]);
+
+        $this->assertStringContainsString('under', \App\Filament\Resources\Budgets\BudgetResource::budgetSummary());
+    }
+
+    public function test_dashboard_budget_widget_mounts_with_summary(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'income', 'amount' => 2000000, 'category' => 'gaji', 'occurred_on' => now()]);
+        \App\Models\Budget::create(['category' => 'makan', 'amount' => 1500000]);
+
+        \Livewire\Livewire::test(\App\Filament\Widgets\BudgetProgress::class)
+            ->assertSuccessful()
+            ->assertSeeText('under');
+    }
+
     public function test_transaction_form_renders(): void
     {
         $this->actingAs(User::factory()->create());

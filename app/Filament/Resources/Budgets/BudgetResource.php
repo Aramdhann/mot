@@ -47,6 +47,7 @@ class BudgetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->description(fn (): string => static::budgetSummary())
             ->columns([
                 TextColumn::make('category')
                     ->searchable()
@@ -77,6 +78,30 @@ class BudgetResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * Shared one-liner for the Budgets page and dashboard widget.
+     */
+    public static function budgetSummary(): string
+    {
+        ['budgeted' => $budgeted, 'income' => $income] = Budget::totalsVsIncome();
+
+        if ($budgeted === 0.0) {
+            return now()->translatedFormat('F Y');
+        }
+
+        $over = $budgeted > $income;
+        $diff = number_format(abs($budgeted - $income), 0);
+
+        return sprintf(
+            '%s — Budgeted IDR %s vs income this month IDR %s (%s by IDR %s)',
+            now()->translatedFormat('F Y'),
+            number_format($budgeted, 0),
+            number_format($income, 0),
+            $over ? 'OVER' : 'under',
+            $diff,
+        );
     }
 
     public static function getPages(): array

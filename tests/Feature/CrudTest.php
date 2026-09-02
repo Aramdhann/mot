@@ -39,6 +39,7 @@ class CrudTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
         $wallet = Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        \App\Models\Budget::create(['category' => 'gaji', 'amount' => 0]);
 
         \Livewire\Livewire::test(\App\Filament\Resources\Transactions\Pages\ManageTransactions::class)
             ->callAction('create', data: [

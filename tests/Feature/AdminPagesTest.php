@@ -68,6 +68,27 @@ class AdminPagesTest extends TestCase
         $this->get('/admin/wallets?action=create')->assertOk();
     }
 
+    public function test_category_field_offers_budget_categories(): void
+    {
+        $this->actingAs(User::factory()->create());
+        \App\Models\Budget::create(['category' => 'makan', 'amount' => 2000000]);
+        \App\Models\Budget::create(['category' => 'tersier', 'amount' => 500000]);
+
+        $options = \App\Filament\Resources\Transactions\TransactionResource::categoryOptions();
+
+        $this->assertArrayHasKey('makan', $options);
+        $this->assertArrayHasKey('tersier', $options);
+    }
+
+    public function test_category_options_include_used_non_budget_categories(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'income', 'amount' => 1000000, 'category' => 'gaji', 'occurred_on' => now()]);
+
+        $this->assertArrayHasKey('gaji', \App\Filament\Resources\Transactions\TransactionResource::categoryOptions());
+    }
+
     public function test_transaction_form_renders(): void
     {
         $this->actingAs(User::factory()->create());

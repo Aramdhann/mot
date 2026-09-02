@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Transactions;
 
 use App\Enums\TransactionType;
 use App\Filament\Resources\Transactions\Pages\ManageTransactions;
+use App\Models\Budget;
 use App\Models\Loan;
 use App\Models\Transaction;
 use App\Models\Wallet;
@@ -53,10 +54,14 @@ class TransactionResource extends Resource
                     ->numeric()
                     ->minValue(0.01)
                     ->prefix('IDR'),
-                TextInput::make('category')
+                Select::make('category')
+                    ->options(fn (): array => static::categoryOptions())
+                    ->searchable()
+                    ->createOptionForm([TextInput::make('category')->required()->maxLength(50)])
+                    ->createOptionUsing(fn (array $data): string => $data['category'])
                     ->required(fn (Get $get): bool => $type($get) === TransactionType::Expense->value)
                     ->visible(fn (Get $get): bool => in_array($type($get), [TransactionType::Income->value, TransactionType::Expense->value]))
-                    ->maxLength(50),
+                    ->helperText('Options come from your Budgets — type to add a new one.'),
                 Select::make('transfer_to_wallet_id')
                     ->label('To wallet')
                     ->options(fn (): array => Wallet::orderBy('name')->pluck('name', 'id')->all())
@@ -123,6 +128,22 @@ class TransactionResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * Category picker options: budgets are the source of truth;
+     * categories already used (e.g. income 'gaji' without a budget) stay selectable.
+     *
+     * @return array<string, string>
+     */
+    public static function categoryOptions(): array
+    {
+        $cats = array_unique([
+            ...Budget::orderBy('category')->pluck('category')->all(),
+            ...Transaction::whereNotNull('category')->pluck('category')->all(),
+        ]);
+
+        return array_combine($cats, $cats);
     }
 
     public static function getPages(): array

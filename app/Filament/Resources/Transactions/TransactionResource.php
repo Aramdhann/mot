@@ -100,10 +100,12 @@ class TransactionResource extends Resource
                     ->color(fn (TransactionType $state): string => $state->getColor()),
                 TextColumn::make('wallet.name')
                     ->label('Wallet')
+                    ->searchable()
                     ->formatStateUsing(fn (Transaction $record): string => $record->wallet?->name
                         .($record->transferToWallet ? ' → '.$record->transferToWallet->name : '')),
                 TextColumn::make('amount')
                     ->money('IDR')
+                    ->searchable()
                     ->formatStateUsing(fn (Transaction $record): string => number_format((float) $record->amount, 0))
                     ->color(fn (Transaction $record): string => $record->type->getColor()),
                 TextColumn::make('category')
@@ -112,9 +114,11 @@ class TransactionResource extends Resource
                     ->searchable(),
                 TextColumn::make('description')
                     ->limit(40)
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->searchable(),
                 TextColumn::make('loan.name')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->searchable(),
             ])
             ->defaultSort('occurred_on', 'desc')
             ->groups([

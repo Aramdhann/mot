@@ -163,6 +163,33 @@ class AdminPagesTest extends TestCase
             ->assertSeeText('under');
     }
 
+    public function test_transactions_search_covers_description(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+        $hit = \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'expense', 'amount' => 75000, 'category' => 'makan', 'description' => 'Groceries Indomaret', 'occurred_on' => now()]);
+        \App\Models\Transaction::create(['wallet_id' => $wallet->id, 'type' => 'expense', 'amount' => 15000, 'category' => 'makan', 'description' => 'Coffee', 'occurred_on' => now()]);
+
+        \Livewire\Livewire::test(\App\Filament\Resources\Transactions\Pages\ManageTransactions::class)
+            ->searchTable('Groceries')
+            ->assertCanSeeTableRecords([$hit])
+            ->assertCountTableRecords(1);
+    }
+
+    public function test_transactions_search_covers_wallet_name(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $bca = \App\Models\Wallet::create(['name' => 'BCA Utama', 'type' => 'bank']);
+        $sea = \App\Models\Wallet::create(['name' => 'SeaBank', 'type' => 'bank']);
+        $hit = \App\Models\Transaction::create(['wallet_id' => $bca->id, 'type' => 'expense', 'amount' => 75000, 'category' => 'makan', 'occurred_on' => now()]);
+        \App\Models\Transaction::create(['wallet_id' => $sea->id, 'type' => 'expense', 'amount' => 15000, 'category' => 'makan', 'occurred_on' => now()]);
+
+        \Livewire\Livewire::test(\App\Filament\Resources\Transactions\Pages\ManageTransactions::class)
+            ->searchTable('BCA')
+            ->assertCanSeeTableRecords([$hit])
+            ->assertCountTableRecords(1);
+    }
+
     public function test_transaction_form_renders(): void
     {
         $this->actingAs(User::factory()->create());

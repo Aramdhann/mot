@@ -1,58 +1,122 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MOT — Money Tracker
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Personal money tracker dashboard built with **Laravel 12** + **Filament v4** (panel, top navbar, MOT brand).
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Wallets** — cash / bank / e-wallet, balances derived from transactions (never stored, can't drift)
+- **Transactions** — income, expense, wallet-to-wallet transfer, loan payment (form adapts to type)
+- **Budgets** — monthly limit per category, spent/remaining tracking with color states
+- **Loans** — principal, auto-computed paid & remaining
+- **Dashboard** — total balance / income / spending / debt stats, latest transactions, wallet & budget & loan widgets, spending-by-day chart (6-month history) + daily list
+- Transfer to same wallet is blocked; every money flow is one `transactions` row
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Piece | What |
+|---|---|
+| PHP 8.2+ | with `pdo_pgsql` |
+| PostgreSQL | local or hosted |
+| Composer | deps |
+| Filament v4 | admin panel at `/admin` |
+| No Vite/Node needed | unless you build a custom theme (`php artisan filament:theme`) |
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Local development
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <repo> mot && cd mot
+composer install
+cp .env.example .env && php artisan key:generate
+# edit .env DB_* (see below)
+php artisan migrate
+php artisan filament:assets          # publishes panel CSS/JS (incl. chart.js)
+php artisan make:filament-user       # name / email / password
+php artisan serve                    # http://localhost:8000 → redirects to /admin
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### Database setup (PostgreSQL)
 
-## Contributing
+Ask your DBA or run as superuser once:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```sql
+CREATE ROLE mot WITH LOGIN PASSWORD 'mot';
+CREATE DATABASE mot OWNER mot;
+-- separate DB for tests (never touches dev data):
+CREATE DATABASE mot_testing OWNER mot;
+```
 
-## Code of Conduct
+`.env`:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=mot
+DB_USERNAME=mot
+DB_PASSWORD=mot
+```
 
-## Security Vulnerabilities
+## Testing
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+28 tests / 95 assertions — CRUD through the real Filament UI, balance & loan & budget math,
+page rendering, form validation, 404 page. Tests run against `mot_testing` and roll back.
 
-## License
+```bash
+php artisan test
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Run these **before every deploy**. All green = safe to ship.
+
+## Deploying to hosting
+
+### A. VPS / cloud (recommended)
+
+```bash
+# on the server, once
+git clone <repo> /var/www/mot && cd /var/www/mot
+composer install --no-dev --optimize-autoloader
+cp .env.example .env && php artisan key:generate   # then edit DB_* to the server's PostgreSQL
+
+php artisan migrate --force
+php artisan filament:assets
+php artisan storage:link
+
+# caches (speeds up production)
+php artisan config:cache && php artisan route:cache && php artisan view:cache
+
+php artisan make:filament-user                     # your real login
+```
+
+Point the webserver docroot to **`/var/www/mot/public`** (Nginx/Apache), PHP-FPM 8.2+.
+Make `storage/` and `bootstrap/cache/` writable by the PHP user.
+
+### B. Shared hosting (cPanel)
+
+Shared hosting works only if it offers **PostgreSQL + Composer + PHP 8.2+** (MySQL is NOT wired up —
+the daily-spending queries use Postgres `extract()`; switching DBs means changing those to `DAY()`).
+
+1. Upload the project (or git clone via terminal), keep it outside `public_html`
+2. In cPanel → *Setup PHP App*: set docroot of your (sub)domain to the project's `public/`
+3. Terminal: `composer install --no-dev --optimize-autoloader`
+4. Create a PostgreSQL DB + user in cPanel, put the creds in `.env` (cPanel prefixes names, e.g. `cpaneluser_mot`)
+5. Same finishing commands as VPS above (migrate, assets, caches, filament-user)
+
+### Production checklist
+
+- [ ] `.env`: `APP_ENV=production`, `APP_DEBUG=false` (debug pages leak paths/creds)
+- [ ] `php artisan config:cache` after any `.env` change
+- [ ] `php artisan test` green locally
+- [ ] Admin password is strong (single-user app — every account has panel access)
+- [ ] HTTPS in front of `/admin` (login credentials go over the wire)
+
+## Project layout (the bits you'll touch)
+
+```
+app/Filament/Resources/     # CRUD screens: Wallets, Transactions, Budgets, Loans
+app/Filament/Widgets/       # dashboard: stats, latest tx, wallet/budget/loan tables, daily chart+list
+app/Models/                 # Transaction has the type-normalization hook; Wallet computes balances
+app/Enums/TransactionType.php
+app/Providers/Filament/AdminPanelProvider.php   # brand, colors, top navbar
+database/migrations/
+tests/Feature/              # one test file per feature
+```

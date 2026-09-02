@@ -36,10 +36,11 @@ class BudgetResource extends Resource
                     ->helperText('Transactions with this category count against the budget.'),
                 TextInput::make('amount')
                     ->label('Monthly limit')
-                    ->required()
                     ->numeric()
                     ->minValue(0.01)
-                    ->prefix('IDR'),
+                    ->nullable()
+                    ->prefix('IDR')
+                    ->helperText('Empty = no limit (category tracking only).'),
             ]);
     }
 
@@ -53,17 +54,19 @@ class BudgetResource extends Resource
                 TextColumn::make('amount')
                     ->label('Monthly limit')
                     ->money('IDR')
+                    ->placeholder('No limit')
                     ->sortable(),
                 TextColumn::make('spent')
                     ->label('Spent this month')
                     ->state(fn (Budget $record): float => $record->spent_this_month)
                     ->money('IDR')
-                    ->color(fn (Budget $record): string => $record->spent_this_month > (float) $record->amount ? 'danger' : ($record->spent_this_month > 0.7 * (float) $record->amount ? 'warning' : 'success')),
+                    ->color(fn (Budget $record): string => $record->amount !== null && $record->spent_this_month > (float) $record->amount ? 'danger' : ($record->amount !== null && $record->spent_this_month > 0.7 * (float) $record->amount ? 'warning' : 'success')),
                 TextColumn::make('remaining')
                     ->label('Remaining')
-                    ->state(fn (Budget $record): float => (float) $record->amount - $record->spent_this_month)
+                    ->state(fn (Budget $record): ?float => $record->amount === null ? null : (float) $record->amount - $record->spent_this_month)
                     ->money('IDR')
-                    ->color(fn (Budget $record): string => ($record->spent_this_month > (float) $record->amount) ? 'danger' : 'success'),
+                    ->placeholder('—')
+                    ->color(fn (Budget $record): string => $record->amount !== null && ($record->spent_this_month > (float) $record->amount) ? 'danger' : 'success'),
             ])
             ->recordActions([
                 EditAction::make(),

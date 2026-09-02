@@ -34,18 +34,20 @@ class BudgetProgress extends TableWidget
                 TextColumn::make('amount')
                     ->label('Limit')
                     ->money('IDR')
+                    ->placeholder('No limit')
                     ->alignEnd(),
                 TextColumn::make('spent')
                     ->label('Spent')
                     ->money('IDR')
                     ->alignEnd()
-                    ->color(fn (Budget $record): string => $record->spent_this_month > (float) $record->amount ? 'danger' : ($record->spent_this_month > 0.7 * (float) $record->amount ? 'warning' : 'success'))
+                    ->color(fn (Budget $record): string => $record->amount !== null && $record->spent_this_month > (float) $record->amount ? 'danger' : ($record->amount !== null && $record->spent_this_month > 0.7 * (float) $record->amount ? 'warning' : 'success'))
                     ->state(fn (Budget $record): float => $record->spent_this_month),
                 TextColumn::make('remaining')
                     ->money('IDR')
+                    ->placeholder('—')
                     ->alignEnd()
-                    ->color(fn (Budget $record): string => ($record->spent_this_month > (float) $record->amount) ? 'danger' : 'success')
-                    ->state(fn (Budget $record): float => (float) $record->amount - $record->spent_this_month),
+                    ->color(fn (Budget $record): string => $record->amount !== null && ($record->spent_this_month > (float) $record->amount) ? 'danger' : 'success')
+                    ->state(fn (Budget $record): ?float => $record->amount === null ? null : (float) $record->amount - $record->spent_this_month),
             ]);
     }
 }

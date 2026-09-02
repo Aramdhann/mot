@@ -89,6 +89,39 @@ class AdminPagesTest extends TestCase
         $this->assertArrayHasKey('gaji', \App\Filament\Resources\Transactions\TransactionResource::categoryOptions());
     }
 
+    public function test_inline_created_category_persists_as_no_limit_budget_and_validates(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $wallet = \App\Models\Wallet::create(['name' => 'BCA', 'type' => 'bank']);
+
+        // what createOptionUsing does when the user adds "jajan" inline:
+        $category = \App\Models\Budget::firstOrCreate(['category' => 'jajan'], ['amount' => null])->category;
+
+        $this->assertDatabaseHas('budgets', ['category' => 'jajan', 'amount' => null]);
+        $this->assertArrayHasKey('jajan', \App\Filament\Resources\Transactions\TransactionResource::categoryOptions());
+
+        // now the transaction form accepts it (the exact submit that failed for the user)
+        \Livewire\Livewire::test(\App\Filament\Resources\Transactions\Pages\ManageTransactions::class)
+            ->callAction('create', data: [
+                'type' => 'expense',
+                'wallet_id' => $wallet->id,
+                'amount' => 25000,
+                'category' => $category,
+                'occurred_on' => now()->format('Y-m-d'),
+            ])
+            ->assertHasNoActionErrors();
+
+        $this->assertDatabaseHas('transactions', ['category' => 'jajan', 'amount' => 25000]);
+    }
+
+    public function test_budgets_page_renders_with_no_limit_budget(): void
+    {
+        $this->actingAs(User::factory()->create());
+        \App\Models\Budget::create(['category' => 'jajan']);
+
+        $this->get('/admin/budgets')->assertOk()->assertSee('No limit');
+    }
+
     public function test_transaction_form_renders(): void
     {
         $this->actingAs(User::factory()->create());

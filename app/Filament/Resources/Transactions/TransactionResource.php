@@ -58,7 +58,10 @@ class TransactionResource extends Resource
                     ->options(fn (): array => static::categoryOptions())
                     ->searchable()
                     ->createOptionForm([TextInput::make('category')->required()->maxLength(50)])
-                    ->createOptionUsing(fn (array $data): string => $data['category'])
+                    ->createOptionUsing(function (array $data): string {
+                        // persist as a no-limit budget so it validates as an option and is tracked going forward
+                        return Budget::firstOrCreate(['category' => $data['category']], ['amount' => null])->category;
+                    })
                     ->required(fn (Get $get): bool => $type($get) === TransactionType::Expense->value)
                     ->visible(fn (Get $get): bool => in_array($type($get), [TransactionType::Income->value, TransactionType::Expense->value]))
                     ->helperText('Options come from your Budgets — type to add a new one.'),

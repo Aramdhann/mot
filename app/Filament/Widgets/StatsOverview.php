@@ -2,7 +2,9 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\TransactionType;
 use App\Models\Transaction;
+use App\Models\Wallet;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -10,16 +12,19 @@ class StatsOverview extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $income = (float) Transaction::where('amount', '>', 0)->sum('amount');
-        $expense = (float) Transaction::where('amount', '<', 0)->sum('amount');
+        $totalBalance = array_sum(Wallet::balancesById());
+
+        $month = [now()->startOfMonth(), now()->endOfMonth()];
+        $income = (float) Transaction::where('type', TransactionType::Income)->whereBetween('occurred_on', $month)->sum('amount');
+        $spending = (float) Transaction::whereIn('type', [TransactionType::Expense, TransactionType::LoanPayment])->whereBetween('occurred_on', $month)->sum('amount');
 
         return [
-            Stat::make('Income', number_format($income, 2))
+            Stat::make('Total balance', 'IDR '.number_format($totalBalance, 0))
+                ->color($totalBalance >= 0 ? 'success' : 'danger'),
+            Stat::make('Income this month', 'IDR '.number_format($income, 0))
                 ->color('success'),
-            Stat::make('Expenses', number_format(abs($expense), 2))
+            Stat::make('Spending this month', 'IDR '.number_format($spending, 0))
                 ->color('danger'),
-            Stat::make('Balance', number_format($income + $expense, 2))
-                ->color($income + $expense >= 0 ? 'success' : 'danger'),
         ];
     }
 }

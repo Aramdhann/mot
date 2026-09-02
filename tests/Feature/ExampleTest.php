@@ -14,4 +14,12 @@ class ExampleTest extends TestCase
     {
         $this->get('/')->assertRedirect('/admin');
     }
+
+    public function test_custom_404_renders(): void
+    {
+        $this->get('/nonexistent-page')
+            ->assertStatus(404)
+            ->assertSee('404')
+            ->assertSee('Back to dashboard');
+    }
 }

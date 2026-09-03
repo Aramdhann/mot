@@ -5,6 +5,7 @@
         ['label' => 'Budget', 'url' => route('filament.admin.resources.budgets.index', ['action' => 'create'])],
         ['label' => 'Loan', 'url' => route('filament.admin.resources.loans.index', ['action' => 'create'])],
         ['label' => 'Note', 'url' => route('filament.admin.resources.notes.index', ['action' => 'create'])],
+        ['label' => 'Todo', 'url' => route('filament.admin.resources.todo-cards.index', ['action' => 'create'])],
     ];
 @endphp
 

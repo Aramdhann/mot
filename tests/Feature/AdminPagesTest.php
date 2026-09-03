@@ -72,7 +72,8 @@ class AdminPagesTest extends TestCase
                 ->assertSee('+ Loan')
                 ->assertSee('+ Note')
                 ->assertSee('+ Todo')
-                ->assertSee('+ Link');
+                ->assertSee('+ Link')
+                ->assertSee('touchstart', false); // swipe-nav script on every page
         }
     }
 

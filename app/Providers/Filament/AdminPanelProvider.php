@@ -33,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             // ponytail: Filament has no native top-right header actions on mobile (only Adaptive/Bottom); force row layout in widget tables
             // ponytail: Filament has no native FAB — quick-create menu via render hook; ?action=create is native action mounting
             ->renderHook('panels::body.end', fn (): string => view('filament.quick-create')->render())
+            ->renderHook('panels::body.end', fn (): string => view('filament.swipe-nav')->render())
             ->renderHook('panels::head.end', fn (): string => '
                 <link rel="manifest" href="/manifest.webmanifest">
                 <meta name="theme-color" content="#f59e0b">
